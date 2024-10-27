@@ -16,12 +16,7 @@ pub(crate) unsafe extern "C" fn rust_entry(cpu_id: usize, dtb: usize) {
     use axhal::mem::phys_to_virt;
     axhal::mem::clear_bss();
 
-    put_debug2();
-    put_debug_paged2();
-
     axhal::cpu::init_primary(cpu_id);
-    put_debug2();
-    put_debug_paged2();
 
     // init fdt
     axhal::platform::mem::idmap_device(dtb);
@@ -37,7 +32,6 @@ pub(crate) unsafe extern "C" fn rust_entry(cpu_id: usize, dtb: usize) {
     });
 
 
-    put_debug_paged2();
 
     axhal::console::init_early();
     axhal::platform::time::init_early();
@@ -65,32 +59,6 @@ pub(crate) unsafe extern "C" fn rust_entry(cpu_id: usize, dtb: usize) {
     }
 
     axruntime::exit_main();
-}
-
-#[cfg(all(target_arch = "aarch64"))]
-#[no_mangle]
-unsafe extern "C" fn put_debug2() {
-    use core::ptr;
-    #[cfg(platform_family = "aarch64-phytiumpi")]
-    {
-        let state = (0x2800D018 as usize) as *mut u8;
-        let put = (0x2800D000 as usize) as *mut u8;
-        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-        *put = b'c';
-    }
-}
-
-#[cfg(all(target_arch = "aarch64"))]
-#[no_mangle]
-unsafe extern "C" fn put_debug_paged2() {
-    use core::ptr;
-    #[cfg(platform_family = "aarch64-phytiumpi")]
-    {
-        let state = (0xFFFF00002800D018 as usize) as *mut u8;
-        let put = (0xFFFF00002800D000 as usize) as *mut u8;
-        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-        *put = b'd';
-    }
 }
 
 

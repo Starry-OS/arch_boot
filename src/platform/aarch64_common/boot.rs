@@ -62,26 +62,20 @@ unsafe extern "C" fn _start() -> ! {
     // X0 = dtb
     core::arch::asm!("
         mrs     x19, mpidr_el1
-        bl      {debug}         // put debug a
         and     x19, x19, #0xffffff     // get current CPU id
         mov     x20, x0                 // save DTB pointer
 
         adrp    x8, {boot_stack}        // setup boot stack
         add     x8, x8, {boot_stack_size}
         mov     sp, x8
-        bl      {debug}         // put debug a
 
         bl      {switch_to_el1}         // switch to EL1
-        bl      {debug}         // put debug a
 
-        bl      {debug}         // put debug a
         adrp    x0, {start}                // kernel image phys addr
         bl      {idmap_kernel}
-        bl      {debug}         // put debug a
 
         bl      {init_mmu}              // setup MMU
         bl      {enable_fp}             // enable fp/neon
-        bl      {debug_paged}
 
         mov     x8, {phys_virt_offset}  // set SP to the high address
         add     sp, sp, x8
@@ -89,7 +83,6 @@ unsafe extern "C" fn _start() -> ! {
 
         mov     x0, x19                 // call rust_entry(cpu_id, dtb)
         mov     x1, x20
-        bl      {debug_paged}
         ldr     x8, ={entry}
         blr     x8
         b      .",
@@ -102,40 +95,9 @@ unsafe extern "C" fn _start() -> ! {
         boot_stack_size = const TASK_STACK_SIZE,
         phys_virt_offset = const axconfig::PHYS_VIRT_OFFSET,
         entry = sym super::rust_entry,
-        debug_paged = sym put_debug_paged,
-        debug=sym put_debug,
         options(noreturn),
     )
 }
-
-#[cfg(all(target_arch = "aarch64"))]
-#[no_mangle]
-unsafe extern "C" fn put_debug() {
-    use core::ptr;
-
-    #[cfg(platform_family = "aarch64-phytiumpi")]
-    {
-        let state = (0x2800D018 as usize) as *mut u8;
-        let put = (0x2800D000 as usize) as *mut u8;
-        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-        *put = b'a';
-    }
-}
-
-#[cfg(all(target_arch = "aarch64"))]
-#[no_mangle]
-unsafe extern "C" fn put_debug_paged() {
-    use core::ptr;
-    #[cfg(platform_family = "aarch64-phytiumpi")]
-    {
-        let state = (0xFFFF00002800D018 as usize) as *mut u8;
-        let put = (0xFFFF00002800D000 as usize) as *mut u8;
-        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-        *put = b'p';
-    }
-}
-
-
 
 /// The earliest entry point for the secondary CPUs.
 #[cfg(feature = "smp")]
