@@ -6,6 +6,7 @@ pub fn start_given_secondary_cpu(cpu_id: usize, stack_top: PhysAddr) {
         fn _start_secondary();
     }
     let real_cpu_id = of::cpus()
+        .expect("Failed to read cpu info")
         .nth(cpu_id)
         .expect("not correct cpu_id")
         .ids()
