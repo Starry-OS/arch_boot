@@ -16,6 +16,7 @@ mod mp;
 #[link_section = ".bss.stack"]
 pub(crate) static mut BOOT_STACK: [u8; TASK_STACK_SIZE] = [0; TASK_STACK_SIZE];
 
+/// The start address of the boot stack for current CPU.
 #[no_mangle]
 pub extern "C" fn current_boot_stack() -> *mut u8 {
     unsafe {
