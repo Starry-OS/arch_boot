@@ -23,15 +23,13 @@ pub(crate) unsafe extern "C" fn rust_entry(cpu_id: usize, dtb: usize) {
     of::init_fdt_ptr(phys_to_virt(dtb.into()).as_usize() as *const u8);
 
     // HugeMap all device memory for allocator
-    of::memory_nodes().map(|nodes|{
+    of::memory_nodes().map(|nodes| {
         for m in nodes {
             for r in m.regions() {
                 axhal::platform::mem::idmap_device(r.starting_address as usize);
             }
-        };
+        }
     });
-
-
 
     axhal::console::init_early();
     axhal::platform::time::init_early();
@@ -60,8 +58,6 @@ pub(crate) unsafe extern "C" fn rust_entry(cpu_id: usize, dtb: usize) {
 
     axruntime::exit_main();
 }
-
-
 
 #[cfg(feature = "smp")]
 pub(crate) unsafe extern "C" fn rust_entry_secondary(cpu_id: usize) {

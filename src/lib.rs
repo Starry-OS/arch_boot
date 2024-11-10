@@ -35,13 +35,12 @@ pub extern "C" fn current_boot_stack() -> *mut u8 {
 
         if sp >= stack_low && sp < stack_high {
             log::debug!("get sp {:#x} in boot_stack", sp);
-            return BOOT_STACK.as_mut_ptr()
+            return BOOT_STACK.as_mut_ptr();
         }
 
         #[cfg(feature = "smp")]
         return mp::mp_boot_stack(sp);
         #[cfg(not(feature = "smp"))]
-        return 0 as *mut u8;
+        return core::ptr::null_mut::<u8>();
     }
-
 }
