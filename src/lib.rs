@@ -44,3 +44,19 @@ pub extern "C" fn current_boot_stack() -> *mut u8 {
         return core::ptr::null_mut::<u8>();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_current_boot_stack() {
+        let sp = current_boot_stack();
+        assert!(sp.is_null());
+    }
+
+    #[test]
+    fn test_config() {
+        assert!(axconfig::TASK_STACK_SIZE != 0);
+    }
+}
